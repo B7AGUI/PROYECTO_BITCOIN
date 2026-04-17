@@ -1,100 +1,87 @@
+import os
 import psycopg2
 import requests
 from datetime import datetime, timedelta
 from abc import ABC, abstractmethod
+from dotenv import load_dotenv
 
-# 1. LA INTERFAZ
-class ProveedorBitcoin(ABC):
+load_dotenv()
+
+# 1. LA INTERFAZ (Ahora genérica para cualquier Crypto)
+class ProveedorCrypto(ABC):
     @abstractmethod
-    def obtener_precio(self):
+    def obtener_precios(self, monedas):
         pass
 
-# 2. EL OBJETO REAL (Conexión real a internet)
-class APIBitcoinReal(ProveedorBitcoin):
-    def obtener_precio(self):
-        print("[API Real] Conectando a CoinGecko para descargar el precio en vivo...")
+# 2. EL OBJETO REAL (Conexión por lotes a la API)
+class APICryptoReal(ProveedorCrypto):
+    def obtener_precios(self, monedas):
         try:
-            url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd"
-            respuesta = requests.get(url)
+            # Convertimos la lista ['bitcoin', 'ethereum'] en "bitcoin,ethereum"
+            ids = ",".join(monedas)
+            url = f"https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=usd"
+            
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+            
+            respuesta = requests.get(url, headers=headers)
             datos = respuesta.json()
-            precio_actual = datos['bitcoin']['usd']
-            print(f"[API Real] ¡Éxito! Precio descargado: ${precio_actual}")
-            return float(precio_actual)
-        except Exception as e:
-            print(f"[Error de Red] Falló la conexión a internet: {e}")
+            
+            # Retornamos un diccionario limpio: {'bitcoin': 63000.0, 'ethereum': 3000.0, ...}
+            return {m: float(datos[m]['usd']) for m in monedas if m in datos}
+        except Exception:
             return None
 
-# 3. EL PROXY (El Cerebro con Caché Inteligente)
-class ProxyBitcoin(ProveedorBitcoin):
+# 3. EL PROXY (Caché inteligente por moneda y sin "prints" molestos)
+class ProxyCrypto(ProveedorCrypto):
     def __init__(self):
-        self.api_real = APIBitcoinReal()
-        
+        self.api_real = APICryptoReal()
         try:
             self.conn = psycopg2.connect(
-                host="localhost",
-                database="tu_base_de_datos", 
-                user="postgres",
-                password="tu_password" # <--- CAMBIA ESTO
+                host=os.getenv("DB_HOST"),
+                database=os.getenv("DB_NAME"),
+                user=os.getenv("DB_USER"),
+                password=os.getenv("DB_PASSWORD")
             )
             self.cursor = self.conn.cursor()
         except Exception as e:
-            print(f"[Error CRÍTICO] No se pudo conectar a la BD: {e}")
+            print(f"Error de conexión: {e}")
 
-    def obtener_precio(self):
-        print("\n[Proxy] Interceptando la petición del usuario...")
-        
-        try:
-            # A) Buscamos el último precio Y su fecha exacta
-            consulta_select = "SELECT precio, fecha FROM historial_bitcoin ORDER BY fecha DESC LIMIT 1;"
-            self.cursor.execute(consulta_select)
+    def obtener_precios(self, monedas):
+        precios_finales = {}
+        monedas_a_consultar_api = []
+
+        for moneda in monedas:
+            # A) Buscamos en BD el último precio de ESTA moneda específica
+            self.cursor.execute(
+                "SELECT precio, fecha FROM historial_bitcoin WHERE moneda_id = %s ORDER BY fecha DESC LIMIT 1;", 
+                (moneda,)
+            )
             resultado = self.cursor.fetchone()
 
-            # B) Lógica de Tiempo de Vida (TTL - 5 minutos)
-            if resultado:
-                precio_bd = resultado[0]
-                fecha_bd = resultado[1]
-                
-                tiempo_transcurrido = datetime.now() - fecha_bd
-                
-                if tiempo_transcurrido < timedelta(minutes=5):
-                    segundos_edad = tiempo_transcurrido.seconds
-                    print(f"[Proxy] Dato fresco ({segundos_edad} seg de antigüedad). Usando Caché: ${precio_bd}")
-                    return precio_bd
-                else:
-                    print("[Proxy] El dato en BD ya caducó (tiene más de 5 min). Necesitamos actualizar...")
+            # B) Verificamos si el dato existe y es menor a 5 minutos
+            if resultado and (datetime.now() - resultado[1]) < timedelta(minutes=5):
+                precios_finales[moneda] = float(resultado[0])
+            else:
+                monedas_a_consultar_api.append(moneda)
 
-            # C) Si no hay datos, o ya caducaron, vamos a la API Real
-            print("[Proxy] Delegando tarea a la API Real...")
-            precio_nuevo = self.api_real.obtener_precio()
-
-            # D) Guardamos el nuevo registro fresquito en la base de datos
-            if precio_nuevo:
-                consulta_insert = "INSERT INTO historial_bitcoin (precio, fecha) VALUES (%s, %s);"
+        # C) Si hay monedas caducadas o nuevas, vamos a la API una sola vez
+        if monedas_a_consultar_api:
+            nuevos_datos = self.api_real.obtener_precios(monedas_a_consultar_api)
+            if nuevos_datos:
                 fecha_actual = datetime.now()
-                self.cursor.execute(consulta_insert, (precio_nuevo, fecha_actual))
+                for m, p in nuevos_datos.items():
+                    precios_finales[m] = p
+                    # Guardamos en la BD con su ID correspondiente
+                    self.cursor.execute(
+                        "INSERT INTO historial_bitcoin (moneda_id, precio, fecha) VALUES (%s, %s, %s);",
+                        (m, p, fecha_actual)
+                    )
                 self.conn.commit()
-                print("[Proxy] Nuevo precio guardado en PostgreSQL para futuras consultas.")
 
-            return precio_nuevo
-
-        except Exception as e:
-            print(f"[Error en consulta] {e}")
-            return None
+        return precios_finales
 
     def cerrar_conexion(self):
-        if hasattr(self, 'cursor') and self.cursor:
-            self.cursor.close()
-        if hasattr(self, 'conn') and self.conn:
-            self.conn.close()
-
-# 4. PRUEBA DE FUEGO FINAL
-if __name__ == "__main__":
-    mi_proxy = ProxyBitcoin()
-    
-    print("\n--- INTENTO 1: Buscando el precio real ---")
-    mi_proxy.obtener_precio()
-    
-    print("\n--- INTENTO 2: Consultando inmediatamente después ---")
-    mi_proxy.obtener_precio()
-    
-    mi_proxy.cerrar_conexion()   
+        if self.cursor: self.cursor.close()
+        if self.conn: self.conn.close()   
