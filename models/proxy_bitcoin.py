@@ -65,7 +65,7 @@ class ProxyCrypto(ProveedorCrypto):
             )
             resultado = self.cursor.fetchone()
 
-            if resultado and (datetime.now() - resultado[1]) < timedelta(minutes=5):
+            if resultado and (datetime.now() - resultado[1]) < timedelta(minutes=1):
                 precios_finales[moneda] = float(resultado[0])
             else:
                 monedas_a_consultar_api.append(moneda)
@@ -87,7 +87,7 @@ class ProxyCrypto(ProveedorCrypto):
     def obtener_historial(self, moneda_id, limite=5):
             try:
                 # Ahora sí, con los nombres reales de TU tabla y columnas
-                self.cursor.execute("SELECT precio, fecha FROM historial_bitcoin WHERE moneda_id = %s ORDER BY fecha DESC LIMIT 100", (moneda_id,))
+                self.cursor.execute("SELECT precio, fecha FROM historial_bitcoin WHERE moneda_id = %s ORDER BY fecha DESC LIMIT 500", (moneda_id,))
                 return self.cursor.fetchall()
             except Exception as e:
                 # Este rollback evita el error InFailedSqlTransaction si algo sale mal
