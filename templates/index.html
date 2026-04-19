@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="contenedor">
+        <header>
+            <h1>MERCADO CRYPTO <span class="highlight">EN VIVO</span></h1>
+            <p>Monitoreo de red activo</p>
+        </header>
+
+        <main class="grid-monedas">
+            {% if criptos %}
+                {% for moneda, precio in criptos.items() %}
+                <div class="tarjeta-moneda">
+                    
+                    <div class="header-moneda">
+                        <img src="{{ logos.get(moneda, '') }}" alt="Logo {{ moneda }}" class="logo-crypto" width="40" height="40">
+                        <h2 class="nombre-moneda">{{ moneda | upper }}</h2>
+                    </div>
+                    
+                    <p class="precio-moneda">$ {{ "{:,.4f}".format(precio) }}</p>
+                    
+                    <a href="{{ url_for('historial', moneda_id=moneda) }}" class="btn-neon" style="text-decoration: none; text-align: center; display: block;">VER HISTORIAL</a>
+                
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="error-box">
+                    <p>Fallo de conexión: No se pudieron obtener los datos.</p>
+                </div>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

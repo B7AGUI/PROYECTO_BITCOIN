@@ -85,14 +85,15 @@ class ProxyCrypto(ProveedorCrypto):
         return precios_finales
 
     def obtener_historial(self, moneda_id, limite=5):
-        try:
-            self.cursor.execute(
-                "SELECT precio, fecha FROM historial_bitcoin WHERE moneda_id = %s ORDER BY fecha DESC LIMIT %s;", 
-                (moneda_id, limite)
-            )
-            return self.cursor.fetchall()
-        except Exception as e:
-            return []
+            try:
+                # Ahora sí, con los nombres reales de TU tabla y columnas
+                self.cursor.execute("SELECT precio, fecha FROM historial_bitcoin WHERE moneda_id = %s ORDER BY fecha DESC LIMIT 100", (moneda_id,))
+                return self.cursor.fetchall()
+            except Exception as e:
+                # Este rollback evita el error InFailedSqlTransaction si algo sale mal
+                self.conn.rollback()
+                print(f"Error al obtener historial: {e}")
+                return []
 
     def cerrar_conexion(self):
         if self.cursor: self.cursor.close()

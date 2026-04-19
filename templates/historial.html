@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial - {{ moneda | upper }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .tabla-neon {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            background-color: var(--tarjeta-bg);
+            border: 1px solid var(--neon-violeta);
+        }
+        .tabla-neon th, .tabla-neon td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #222;
+        }
+        .tabla-neon th {
+            color: var(--neon-cyan);
+            border-bottom: 2px solid var(--neon-violeta);
+        }
+        .tabla-neon td.precio {
+            color: var(--neon-amarillo);
+            font-weight: bold;
+        }
+        .btn-volver {
+            display: inline-block;
+            margin-bottom: 2rem;
+            width: auto;
+        }
+        /* Contenedor específico para darle espacio a la gráfica */
+        .grafica-container {
+            background-color: var(--tarjeta-bg);
+            border: 1px solid #333;
+            border-left: 4px solid var(--neon-amarillo);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <header>
+            <h1>HISTORIAL: <span class="highlight">{{ moneda | upper }}</span></h1>
+        </header>
+
+        <a href="{{ url_for('inicio') }}" class="btn-neon btn-volver" style="text-decoration: none;">[<] VOLVER AL DASHBOARD</a>
+
+        {% if historial %}
+        
+        <div class="grafica-container">
+            <canvas id="graficaCrypto" width="400" height="150"></canvas>
+        </div>
+
+        <table class="tabla-neon">
+            <thead>
+                <tr>
+                    <th>FECHA Y HORA (Registro)</th>
+                    <th>VALOR REGISTRADO (USD)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for precio, fecha in historial %}
+                    {% if loop.index <= 5 %}
+                    <tr>
+                        <td>{{ fecha.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+                        <td class="precio">$ {{ "{:,.4f}".format(precio) }}</td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="error-box">
+            <p>Aún no hay suficientes datos registrados por el recolector.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if historial %}
+    <script>
+        const ctx = document.getElementById('graficaCrypto').getContext('2d');
+        
+        // Creamos un degradado oscuro/amarillo para debajo de la línea
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(255, 215, 0, 0.3)'); 
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+        // Inyectamos los datos de Flask invertidos (para que el más viejo salga a la izquierda y el más nuevo a la derecha)
+        const labelsX = [
+            {% for precio, fecha in historial[:5] %}
+                '{{ fecha.strftime("%H:%M") }}',
+            {% endfor %}
+        ];
+        
+        const dataY = [
+            {% for precio, fecha in historial|reverse %}
+                {{ precio }},
+            {% endfor %}
+        ];
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labelsX,
+                datasets: [{
+                    label: '{{ moneda | upper }} (USD)',
+                    data: dataY,
+                    borderColor: '#ffd700', // Línea principal amarilla
+                    backgroundColor: gradient,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#bc13fe', // Nodos color violeta
+                    pointBorderColor: '#00f3ff', // Bordes cyan
+                    pointRadius: 4,
+                    pointHoverRadius: 8,
+                    fill: true,
+                    tension: 0.3 // Efecto curva orgánica
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        labels: { color: '#888', font: { family: 'Courier New' } }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: '#222' },
+                        ticks: { color: '#00f3ff', font: { family: 'Courier New' } }
+                    },
+                    y: {
+                        grid: { color: '#222' },
+                        ticks: { color: '#00f3ff', font: { family: 'Courier New' } }
+                    }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

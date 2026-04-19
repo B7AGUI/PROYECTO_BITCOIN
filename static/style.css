@@ -1,0 +1,130 @@
+/* static/style.css */
+
+/* Variables de color Cyberpunk */
+:root {
+    --bg-oscuro: #07070a;
+    --tarjeta-bg: #121216;
+    --neon-cyan: #00f3ff;
+    --neon-violeta: #bc13fe;
+    --neon-amarillo: #ffd700;
+    --texto-gris: #888888;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+body {
+    background-color: var(--bg-oscuro);
+    color: #ffffff;
+    padding: 2rem;
+    /* Un sutil degradado de fondo para dar profundidad */
+    background-image: radial-gradient(circle at top, #1a0b2e 0%, var(--bg-oscuro) 40%);
+    min-height: 100vh;
+}
+
+.contenedor {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Encabezado */
+header {
+    text-align: center;
+    margin-bottom: 3rem;
+    border-bottom: 1px solid var(--neon-violeta);
+    padding-bottom: 1rem;
+    box-shadow: 0 10px 20px -10px rgba(188, 19, 254, 0.2);
+}
+
+h1 {
+    font-size: 2.8rem;
+    letter-spacing: 3px;
+    color: #fff;
+}
+
+.highlight {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 8px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+}
+
+header p {
+    color: var(--texto-gris);
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+}
+
+/* Grid de las tarjetas */
+.grid-monedas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+/* Tarjetas individuales */
+.tarjeta-moneda {
+    background-color: var(--tarjeta-bg);
+    border: 1px solid #222;
+    border-left: 4px solid var(--neon-violeta);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tarjeta-moneda:hover {
+    transform: translateY(-5px) scale(1.02);
+    border-color: var(--neon-cyan);
+    border-left: 4px solid var(--neon-cyan);
+    /* Resplandor violeta y cyan al pasar el mouse */
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.3), inset 0 0 20px rgba(188, 19, 254, 0.1);
+}
+
+.nombre-moneda {
+    font-size: 1.3rem;
+    color: var(--neon-cyan);
+    letter-spacing: 1px;
+}
+
+.precio-moneda {
+    font-size: 2rem;
+    color: var(--neon-amarillo);
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);
+}
+
+/* Botón interactivo */
+.btn-neon {
+    margin-top: 10px;
+    background: transparent;
+    color: var(--neon-violeta);
+    border: 1px solid var(--neon-violeta);
+    padding: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-neon:hover {
+    background-color: var(--neon-violeta);
+    color: #fff;
+    box-shadow: 0 0 10px var(--neon-violeta);
+}
+
+/* Manejo de errores */
+.error-box {
+    background-color: #2a0808;
+    border: 1px solid #ff003c;
+    color: #ff003c;
+    padding: 1.5rem;
+    text-align: center;
+    grid-column: 1 / -1;
+    text-shadow: 0 0 5px #ff003c;
+}
