@@ -86,15 +86,13 @@
     <script>
         const ctx = document.getElementById('graficaCrypto').getContext('2d');
         
-        // Creamos un degradado oscuro/amarillo para debajo de la línea
         let gradient = ctx.createLinearGradient(0, 0, 0, 400);
         gradient.addColorStop(0, 'rgba(255, 215, 0, 0.3)'); 
         gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-        // Inyectamos los datos de Flask invertidos (para que el más viejo salga a la izquierda y el más nuevo a la derecha)
         const labelsX = [
-            {% for precio, fecha in historial[:5] %}
-                '{{ fecha.strftime("%H:%M") }}',
+            {% for precio, fecha in historial|reverse %}
+                '{{ fecha.strftime("%d %b") }}',
             {% endfor %}
         ];
         
@@ -103,7 +101,6 @@
                 {{ precio }},
             {% endfor %}
         ];
-
         new Chart(ctx, {
             type: 'line',
             data: {

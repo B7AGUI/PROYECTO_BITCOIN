@@ -7,17 +7,17 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# 1. LA INTERFAZ (Ahora genérica para cualquier Crypto)
+# 1. INTERFAZ
 class ProveedorCrypto(ABC):
     @abstractmethod
     def obtener_precios(self, monedas):
         pass
 
     @abstractmethod
-    def obtener_historial(self, moneda_id, limite=5):
+    def obtener_historial(self, moneda_id, limite=2000):
         pass
 
-# 2. EL OBJETO REAL (Conexión por lotes a la API)
+# 2. OBJETO REAL 
 class APICryptoReal(ProveedorCrypto):
     def obtener_precios(self, monedas):
         try:
@@ -35,11 +35,10 @@ class APICryptoReal(ProveedorCrypto):
         except Exception:
             return None
 
-    # ---> NUEVO: La API real no gestiona nuestro caché, así que retorna vacío para cumplir la interfaz
-    def obtener_historial(self, moneda_id, limite=5):
+    def obtener_historial(self, moneda_id, limite=2000):
         return []
 
-# 3. EL PROXY (Caché inteligente por moneda)
+# 3. PROXY 
 class ProxyCrypto(ProveedorCrypto):
     def __init__(self):
         self.api_real = APICryptoReal()
@@ -84,10 +83,10 @@ class ProxyCrypto(ProveedorCrypto):
 
         return precios_finales
 
-    def obtener_historial(self, moneda_id, limite=5):
+    def obtener_historial(self, moneda_id, limite=2000):
             try:
                 # Ahora sí, con los nombres reales de TU tabla y columnas
-                self.cursor.execute("SELECT precio, fecha FROM historial_bitcoin WHERE moneda_id = %s ORDER BY fecha DESC LIMIT 500", (moneda_id,))
+                self.cursor.execute("SELECT precio, fecha FROM historial_bitcoin WHERE moneda_id = %s ORDER BY fecha DESC LIMIT %s;", (moneda_id, limite))
                 return self.cursor.fetchall()
             except Exception as e:
                 # Este rollback evita el error InFailedSqlTransaction si algo sale mal
