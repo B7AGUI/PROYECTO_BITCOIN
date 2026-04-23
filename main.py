@@ -1,7 +1,6 @@
 import os
 from controller.crypto_controller import CryptoController
 
-# Códigos ANSI para el estilo neón/cyberpunk
 NEON_YELLOW = '\033[38;5;226m'
 NEON_CYAN = '\033[38;5;51m'
 DARK_GREY = '\033[38;5;239m'

@@ -1,11 +1,11 @@
-# 🌐 Mercado Crypto en Vivo - Dashboard Cyberpunk
+# 🌐 Mercado Crypto en Vivo ( NEONCHAIN )
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue?style=for-the-badge&logo=python&logoColor=yellow)
 ![Flask](https://img.shields.io/badge/Flask-Backend-black?style=for-the-badge&logo=flask)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue?style=for-the-badge&logo=postgresql)
 ![Chart.js](https://img.shields.io/badge/Chart.js-Gráficas-FF6384?style=for-the-badge&logo=chartdotjs)
 
-Un sistema de backend robusto para la recolección, almacenamiento y visualización de fluctuaciones de criptomonedas. 
+Un sistema de backend para la recolección, almacenamiento y visualización de fluctuaciones de criptomonedas. 
 
 A diferencia de un simple consumidor web de APIs, este proyecto implementa un motor de persistencia propio y un caché inteligente de tipo "Lazy Loading" para garantizar la soberanía de los datos, optimizar recursos y evitar bloqueos por *Rate Limiting*.
 

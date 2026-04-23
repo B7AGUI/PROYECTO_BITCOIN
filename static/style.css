@@ -1,6 +1,4 @@
-/* static/style.css */
 
-/* Variables de color Cyberpunk */
 :root {
     --bg-oscuro: #07070a;
     --tarjeta-bg: #121216;
@@ -21,7 +19,6 @@ body {
     background-color: var(--bg-oscuro);
     color: #ffffff;
     padding: 2rem;
-    /* Un sutil degradado de fondo para dar profundidad */
     background-image: radial-gradient(circle at top, #1a0b2e 0%, var(--bg-oscuro) 40%);
     min-height: 100vh;
 }
@@ -80,7 +77,6 @@ header p {
     transform: translateY(-5px) scale(1.02);
     border-color: var(--neon-cyan);
     border-left: 4px solid var(--neon-cyan);
-    /* Resplandor violeta y cyan al pasar el mouse */
     box-shadow: 0 0 15px rgba(0, 243, 255, 0.3), inset 0 0 20px rgba(188, 19, 254, 0.1);
 }
 

@@ -13,5 +13,4 @@ class CryptoController:
         return self.proxy.obtener_precios(self.monedas_activas)
 
     def obtener_historial_moneda(self, moneda_id):
-        """Pide al proxy los últimos 5 registros de una moneda"""
         return self.proxy.obtener_historial(moneda_id, limite=2000)

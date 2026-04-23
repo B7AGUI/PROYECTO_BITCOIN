@@ -16,7 +16,6 @@ diccionario_logos = {
 @app.route('/')
 def inicio():
     datos_actualizados = controlador.obtener_precios_actualizados() 
-    # Le mandamos también el diccionario de logos a la plantilla
     return render_template('index.html', criptos=datos_actualizados, logos=diccionario_logos)
 
 @app.route('/historial/<moneda_id>')
