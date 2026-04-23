@@ -28,10 +28,10 @@ El proyecto funciona mediante la integración de dos servidores locales que mane
    - Actúa como el motor de persistencia principal.
    - Registra cada punto de datos histórico generado por los usuarios al interactuar con la plataforma, construyendo una bitácora de precios a lo largo del tiempo.
 
-##  Flujo de Datos (Data Pipeline)
+##  Flujo de Datos 
 
 1. `Usuario` ➔ Recarga o ingresa al Dashboard desde el navegador.
-2. `Controlador (Proxy)` ➔ Revisa la base de datos: ¿El último registro tiene más de 5 min?
+2. `Controlador (Proxy)` ➔ Revisa la base de datos: ¿El último registro tiene más de 1 min?
    - **NO:** Devuelve los datos locales instantáneamente (Caché).
    - **SÍ:** Llama a la API de `CoinGecko` ➔ Devuelve JSON ➔ Hace un `INSERT` en `PostgreSQL`.
 3. `Flask` ➔ Construye el HTML inyectando los datos.
